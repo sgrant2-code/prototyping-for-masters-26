@@ -9,197 +9,103 @@ const svg = (name, attributes = {}) => {
 export default {
   student: "Codex",
   title: "Wine spill",
-  width: 430,
-  height: 320,
-  rotate: 1,
+  frame: false,
+  width: 450,
+  height: 390,
   mount(root) {
     const style = document.createElement("style");
     style.textContent = `
-      :host {
+      :host { display: block; height: 100%; }
+      .wine-scene { position: relative; width: 100%; height: 100%; }
+      .illustration {
         display: block;
+        width: 100%;
         height: 100%;
+        object-fit: contain;
+        object-position: center;
       }
-      .wine-bar {
-        position: relative;
-        display: grid;
-        grid-template-rows: 1fr auto;
-        height: 100%;
-        overflow: hidden;
-        background: #f7ecdc;
-        color: #2a191a;
-        font-family: "IBM Plex Mono", monospace;
-      }
-      .wine-bar::before {
+      .pour-layer {
         position: absolute;
-        top: -4rem;
-        left: -2.5rem;
-        width: 11rem;
-        height: 11rem;
-        border: 1px solid #6d1231;
-        border-radius: 50%;
-        content: "";
-        opacity: 0.13;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
         pointer-events: none;
       }
-      .scene {
-        position: relative;
-        min-height: 0;
-      }
-      .bottle {
-        position: absolute;
-        z-index: 2;
-        bottom: 0.8rem;
-        left: 1.1rem;
-        width: 8rem;
-        height: 12rem;
-        padding: 0;
-        border: 0;
-        background: none;
-        cursor: pointer;
-        transform-origin: 78% 94%;
-      }
-      .bottle svg {
-        display: block;
-        width: 100%;
-        height: 100%;
-        overflow: visible;
-        transform-origin: 78% 94%;
-        transition: transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-      .bottle.is-pouring svg { transform: rotate(24deg) translate(0.45rem, -0.1rem); }
-      .bottle:focus-visible { outline: 2px solid #6d1231; outline-offset: 0.3rem; }
-      .bottle:active svg { transform: scale(0.97); }
-      .bottle.is-pouring:active svg { transform: rotate(24deg) translate(0.45rem, -0.1rem) scale(0.97); }
-      .glass {
-        position: absolute;
-        right: 2.25rem;
-        bottom: 1.15rem;
-        width: 8.1rem;
-        height: 12rem;
-      }
-      .glass svg {
-        display: block;
-        width: 100%;
-        height: 100%;
-        overflow: visible;
-      }
       .wine-stream {
-        position: absolute;
-        z-index: 1;
-        top: 2.6rem;
-        left: 8.25rem;
-        width: 7.2rem;
-        height: 1.6rem;
         opacity: 0;
-        transform: rotate(12deg) scaleX(0.2);
+        transform-box: fill-box;
         transform-origin: left center;
         transition: opacity 120ms ease, transform 180ms ease;
       }
-      .wine-stream.is-visible {
-        opacity: 1;
-        transform: rotate(12deg) scaleX(1);
+      .wine-stream.is-visible { opacity: 1; transform: scaleX(1); }
+      .bottle {
+        position: absolute;
+        z-index: 2;
+        top: 5%;
+        left: 24%;
+        width: 28%;
+        height: 87%;
+        padding: 0;
+        border: 0;
+        border-radius: 48% 48% 18% 18%;
+        background: transparent;
+        cursor: pointer;
       }
-      .caption {
-        position: relative;
-        z-index: 3;
-        display: flex;
-        justify-content: space-between;
-        gap: 1rem;
-        align-items: center;
-        min-height: 3.4rem;
-        padding: 0.72rem 0.9rem;
-        border-top: 1px solid #6d1231;
-        background: #ebd4bd;
-        font-size: 0.66rem;
-        line-height: 1.35;
-      }
-      .caption p { margin: 0; }
-      .caption strong {
-        color: #6d1231;
-        font-weight: 600;
-        text-transform: uppercase;
-      }
-      .meter {
-        width: 4.8rem;
-        height: 0.42rem;
+      .bottle:hover { background: rgb(255 255 255 / 10%); }
+      .bottle:focus-visible { outline: 3px solid #8f1835; outline-offset: 0.3rem; }
+      .bottle.is-pouring { cursor: grabbing; }
+      .sr-status {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
         overflow: hidden;
-        border: 1px solid #6d1231;
-        border-radius: 999px;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
-      .meter-fill {
-        width: 0;
-        height: 100%;
-        background: #6d1231;
-        transition: width 80ms linear;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .bottle svg,
-        .wine-stream,
-        .meter-fill { transition: none; }
-      }
+      @media (prefers-reduced-motion: reduce) { .wine-stream { transition: none; } }
     `;
 
-    const bar = document.createElement("section");
-    bar.className = "wine-bar";
-    bar.innerHTML = `
-      <div class="scene">
-        <button class="bottle" type="button" aria-pressed="false" aria-label="Start pouring wine"></button>
-        <div class="wine-stream" aria-hidden="true"></div>
-        <div class="glass" aria-label="Wine glass"></div>
-      </div>
-      <div class="caption">
-        <p><strong>Click the bottle</strong><br><span class="status">Fill the glass, if you dare.</span></p>
-        <div class="meter" aria-hidden="true"><div class="meter-fill"></div></div>
-      </div>
+    const scene = document.createElement("section");
+    scene.className = "wine-scene";
+    scene.innerHTML = `
+      <img class="illustration" src="/playground-assets/wine-bottle-and-glass.png" alt="Illustration of a dark wine bottle beside a red wine glass" />
+      <button class="bottle" type="button" aria-pressed="false" aria-label="Start pouring wine"></button>
+      <output class="sr-status" aria-live="polite">The glass is empty.</output>
     `;
 
-    const bottle = bar.querySelector(".bottle");
-    const stream = bar.querySelector(".wine-stream");
-    const glass = bar.querySelector(".glass");
-    const status = bar.querySelector(".status");
-    const meter = bar.querySelector(".meter-fill");
+    const bottle = scene.querySelector(".bottle");
+    const status = scene.querySelector("output");
     let fill = 0;
     let pouring = false;
     let spilled = false;
     let frame = null;
     let lastTime = 0;
 
-    const bottleArt = svg("svg", { viewBox: "0 0 120 190", "aria-hidden": "true" });
-    bottleArt.append(
-      svg("path", { d: "M 46 10 H 76 V 39 L 88 58 V 168 Q 60 181 32 168 V 58 L 46 39 Z", fill: "#254438", stroke: "#1b3028", "stroke-width": 3 }),
-      svg("path", { d: "M 41 63 Q 60 55 79 63 V 151 Q 60 160 41 151 Z", fill: "#f4ddaa", stroke: "#6d1231", "stroke-width": 2 }),
-      svg("path", { d: "M 50 12 H 72 V 32 H 50 Z", fill: "#dcb67a", stroke: "#6c4a29", "stroke-width": 2 }),
-      svg("path", { d: "M 38 164 Q 60 172 82 164", fill: "none", stroke: "#6d1231", "stroke-width": 5, opacity: 0.88 }),
-    );
-    const wineLabel = svg("text", {
-      x: 60, y: 111, fill: "#6d1231", "font-size": 22, "font-family": "Georgia, serif", "font-weight": 700,
-      "letter-spacing": 2, "text-anchor": "middle",
+    const pourLayer = svg("svg", { class: "pour-layer", viewBox: "0 0 1162 1036", "aria-hidden": "true" });
+    const clip = svg("clipPath", { id: "wine-glass-bowl-clip" });
+    clip.append(svg("path", { d: "M 612 326 C 601 483 616 642 717 710 C 767 744 845 724 884 666 C 936 583 922 430 894 331 Z" }));
+    const wine = svg("rect", { x: 586, y: 742, width: 366, height: 420, fill: "#8f1835", opacity: 0.76, "clip-path": "url(#wine-glass-bowl-clip)" });
+    const wineSurface = svg("path", { d: "M 620 742 Q 764 758 909 742", fill: "none", stroke: "#cf3d4d", "stroke-width": 9, opacity: 0.72, "clip-path": "url(#wine-glass-bowl-clip)" });
+    const stream = svg("path", {
+      class: "wine-stream", d: "M 492 143 C 545 166 579 229 645 333", fill: "none", stroke: "#8f1835", "stroke-width": 17, "stroke-linecap": "round",
     });
-    wineLabel.textContent = "WINE";
-    bottleArt.append(wineLabel);
-    bottle.append(bottleArt);
+    const label = svg("text", {
+      x: 468, y: 647, fill: "#24130f", "font-size": 36, "font-family": "Georgia, serif", "font-weight": 700,
+      "letter-spacing": 5, "text-anchor": "middle", opacity: 0.92,
+    });
+    label.textContent = "WINE";
+    pourLayer.append(clip, wine, wineSurface, stream, label);
+    scene.append(pourLayer);
 
-    const streamArt = svg("svg", { viewBox: "0 0 150 32" });
-    streamArt.append(svg("path", { d: "M 0 12 C 34 7, 72 26, 150 17", fill: "none", stroke: "#6d1231", "stroke-width": 10, "stroke-linecap": "round" }));
-    stream.append(streamArt);
-
-    const glassArt = svg("svg", { viewBox: "0 0 120 190", "aria-hidden": "true" });
-    const fillClip = svg("clipPath", { id: "wine-glass-clip" });
-    fillClip.append(svg("path", { d: "M 25 25 H 95 L 84 122 Q 60 139 36 122 Z" }));
-    const wine = svg("rect", { x: 20, y: 125, width: 80, height: 105, fill: "#6d1231", "clip-path": "url(#wine-glass-clip)" });
-    glassArt.append(
-      wine,
-      svg("path", { d: "M 25 25 H 95 L 84 122 Q 60 139 36 122 Z", fill: "#fffaf1", "fill-opacity": 0.2, stroke: "#875f54", "stroke-width": 3 }),
-      svg("path", { d: "M 60 133 V 165 M 38 170 H 82", fill: "none", stroke: "#875f54", "stroke-width": 3, "stroke-linecap": "round" }),
-      svg("path", { d: "M 31 35 H 89", fill: "none", stroke: "#ffffff", "stroke-width": 2, opacity: 0.72 }),
-    );
-    glass.append(glassArt);
-
-    const updateGlass = () => {
-      const wineTop = 125 - fill * 0.98;
-      wine.setAttribute("y", wineTop.toFixed(2));
-      wine.setAttribute("height", (230 - wineTop).toFixed(2));
-      meter.style.width = `${fill}%`;
+    const updateWine = () => {
+      const top = 742 - fill * 4.08;
+      wine.setAttribute("y", top.toFixed(2));
+      wine.setAttribute("height", (1162 - top).toFixed(2));
+      wineSurface.setAttribute("d", `M 620 ${top.toFixed(2)} Q 764 ${(top + 16).toFixed(2)} 909 ${top.toFixed(2)}`);
     };
 
     const makeSpill = () => {
@@ -207,8 +113,8 @@ export default {
       if (!viewport || viewport.querySelector(".wine-stain-overlay")) return;
       const source = root.host.getBoundingClientRect();
       const bounds = viewport.getBoundingClientRect();
-      const x = Math.min(88, Math.max(12, ((source.left - bounds.left + source.width * 0.63) / bounds.width) * 100));
-      const y = Math.min(88, Math.max(12, ((source.top - bounds.top + source.height * 0.48) / bounds.height) * 100));
+      const x = Math.min(88, Math.max(12, ((source.left - bounds.left + source.width * 0.68) / bounds.width) * 100));
+      const y = Math.min(88, Math.max(12, ((source.top - bounds.top + source.height * 0.54) / bounds.height) * 100));
       const spill = document.createElement("div");
       spill.className = "wine-stain-overlay";
       Object.assign(spill.style, {
@@ -233,11 +139,11 @@ export default {
       if (!pouring) return;
       fill = Math.min(100, fill + (now - lastTime) * 0.018);
       lastTime = now;
-      updateGlass();
+      updateWine();
       if (fill >= 100 && !spilled) {
         spilled = true;
         makeSpill();
-        status.textContent = "Too late. Wine stains everything.";
+        status.textContent = "The wine glass overflowed and stained the playground.";
       }
       frame = requestAnimationFrame(tick);
     };
@@ -251,16 +157,16 @@ export default {
       if (!next) {
         if (frame) cancelAnimationFrame(frame);
         frame = null;
-        if (!spilled) status.textContent = fill ? "A civilized little pour." : "Fill the glass, if you dare.";
+        if (!spilled) status.textContent = fill ? "The wine stopped pouring." : "The glass is empty.";
         return;
       }
-      if (!spilled) status.textContent = "Click again before it spills.";
+      if (!spilled) status.textContent = "Wine is pouring into the glass.";
       lastTime = performance.now();
       frame = requestAnimationFrame(tick);
     };
 
     bottle.addEventListener("click", () => setPouring(!pouring));
-    updateGlass();
-    root.append(style, bar);
+    updateWine();
+    root.append(style, scene);
   },
 };
